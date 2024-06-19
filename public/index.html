@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Chat</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f8f8;
+      color: #333;
+    }
+
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-box {
+      width: 400px;
+      height: 500px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chat-header {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    #chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .message {
+      background-color: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 5px;
+      margin: 5px 0;
+    }
+
+    .own-message {
+      background-color: #007bff;
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    #message-input {
+      width: calc(100% - 24px);
+      padding: 10px;
+      border: none;
+      border-top: 1px solid #ddd;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #message-input:focus {
+      border-top-color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat-box">
+      <div id="chat-header">WebSocket Chat</div>
+      <div id="chat-messages"></div>
+      <input type="text" id="message-input" placeholder="Digite sua mensagem e pressione Enter">
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io('http://localhost:3000');
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+
+    messageInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        const message = event.target.value.trim();
+        if (message !== '') {
+          socket.emit('msgToServer', message);
+          event.target.value = '';
+        }
+      }
+    });
+
+    function addMessage(message, isOwnMessage) {
+      const messageElement = document.createElement('div');
+      messageElement.textContent = message;
+      messageElement.classList.add('message');
+      if (isOwnMessage) {
+        messageElement.classList.add('own-message');
+      }
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    socket.on('msgToClient', function(msg, clientId) {
+      addMessage(`[${clientId}]: ${msg}`, false);
+    });
+  </script>
+</body>
+</html>
